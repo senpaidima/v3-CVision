@@ -123,7 +123,9 @@ jobs:
           echo "Waiting for deployment to stabilize..."
           sleep 60
 
-          HEALTH_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          WEBAPP_URL="${{ steps.deploy-to-webapp.outputs.webapp-url }}"
+          HEALTH_URL="${WEBAPP_URL:-https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net}"
+          echo "Health check URL: ${HEALTH_URL}/api/v1/health"
           for i in $(seq 1 6); do
             echo "Health check attempt $i/6..."
             status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${HEALTH_URL}/api/v1/health" 2>/dev/null || echo "000")

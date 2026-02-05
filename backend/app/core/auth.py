@@ -10,9 +10,9 @@ import urllib.request
 from typing import Any
 
 from fastapi import HTTPException, status
-from jose import jwt, jwk
+from jose import jwk, jwt
 from jose.constants import Algorithms
-from jose.exceptions import ExpiredSignatureError, JWTClaimsError, JWSSignatureError, JWTError
+from jose.exceptions import ExpiredSignatureError, JWSSignatureError, JWTClaimsError, JWTError
 
 logger = logging.getLogger("azure_auth")
 
@@ -39,7 +39,7 @@ def get_jwks(tenant_id: str) -> dict[str, Any]:
     logger.info("Fetching JWKS from %s", jwks_uri)
 
     try:
-        req = urllib.request.Request(jwks_uri)
+        req = urllib.request.Request(jwks_uri)  # noqa: S310
         with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310
             jwks = json.loads(resp.read().decode())
 
@@ -152,4 +152,4 @@ def extract_roles_from_token(payload: dict[str, Any]) -> list[str]:
     roles = payload.get("roles", [])
     if not isinstance(roles, list):
         return []
-    return [str(r) for r in roles if isinstance(r, (str, int))]
+    return [str(r) for r in roles if isinstance(r, str | int)]

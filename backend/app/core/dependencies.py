@@ -47,7 +47,7 @@ async def get_current_user(authorization: str | None = Header(None)) -> UserInfo
 
 
 def require_role(*roles: str):
-    async def _check_role(user: UserInfo = Depends(get_current_user)) -> UserInfo:
+    async def _check_role(user: UserInfo = Depends(get_current_user)) -> UserInfo:  # noqa: B008
         if not any(r in user.roles for r in roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

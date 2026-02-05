@@ -53,7 +53,7 @@ async def health_check():
 
 
 @router.get("/protected")
-async def health_protected(user: UserInfo = Depends(get_current_user)):
+async def health_protected(user: UserInfo = Depends(get_current_user)):  # noqa: B008
     return {"status": "ok", "user": user.model_dump()}
 
 

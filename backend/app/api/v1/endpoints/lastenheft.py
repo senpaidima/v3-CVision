@@ -16,9 +16,9 @@ from app.models.lastenheft import (
 )
 from app.services.candidate_matcher import CandidateMatcherError, candidate_matcher
 from app.services.document_extractor import (
+    MAX_FILE_SIZE,
     SUPPORTED_CONTENT_TYPES,
     DocumentExtractionError,
-    MAX_FILE_SIZE,
     document_extractor,
 )
 from app.services.lastenheft_analyzer import LastenheftAnalyzerError, lastenheft_analyzer
@@ -31,7 +31,7 @@ router = APIRouter(prefix="/lastenheft", tags=["lastenheft"])
 @router.post("/upload", response_model=LastenheftUploadResponse)
 async def upload_lastenheft(
     file: UploadFile,
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_current_user),  # noqa: B008
 ):
     if file.content_type not in SUPPORTED_CONTENT_TYPES:
         raise HTTPException(
@@ -75,7 +75,7 @@ async def upload_lastenheft(
 @router.post("/text", response_model=LastenheftUploadResponse)
 async def paste_lastenheft_text(
     request: LastenheftTextRequest,
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_current_user),  # noqa: B008
 ):
     cleaned = document_extractor.extract_from_text(request.text)
     logger.info("Text paste: %d chars from user=%s", len(cleaned), user.name)
@@ -90,7 +90,7 @@ async def paste_lastenheft_text(
 @router.post("/analyze", response_model=LastenheftAnalysisResponse)
 async def analyze_lastenheft(
     request: LastenheftAnalysisRequest,
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_current_user),  # noqa: B008
 ):
     try:
         result = await lastenheft_analyzer.analyze(request.text)
@@ -115,7 +115,7 @@ async def analyze_lastenheft(
 @router.post("/match", response_model=CandidateMatchResponse)
 async def match_candidates(
     request: CandidateMatchRequest,
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_current_user),  # noqa: B008
 ):
     try:
         result = await candidate_matcher.match(request.extracted_skills, request.text)

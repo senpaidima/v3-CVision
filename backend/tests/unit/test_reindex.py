@@ -16,19 +16,63 @@ from scripts.reindex import (
 
 SAMPLE_COSMOS_DOC: dict = {
     "id": "JDOE",
-    "Alias": "JDOE",
-    "Employee": "Doe, John",
-    "First Name": "John",
-    "Last Name": "Doe",
-    "Job Title": "Senior Developer",
-    "Employee ID": "E12345",
-    "Department": "IT",
-    "Location": "Berlin",
-    "Start": "2020-01-15",
-    "Skills": ["Python", "JavaScript", "React"],
-    "Tools": ["VS Code", "Docker", "Git"],
-    "Experience": "5 years in software development",
-    "Projects": "CVision, DataPlatform",
+    "metadata": {
+        "title": "Doe, John",
+        "first_name": "John",
+        "last_name": "Doe",
+    },
+    "personal_info": {
+        "location": "Berlin",
+    },
+    "skills": {
+        "tools": ["VS Code", "Docker", "Git"],
+        "technologies": ["Python", "JavaScript", "React"],
+        "methods": [],
+        "standards": [],
+        "soft_skills": [],
+    },
+    "experience": [
+        {
+            "type": "job",
+            "title": "Senior Developer",
+            "company": "ACME",
+            "start_date": "2020-01-15",
+            "end_date": "",
+            "tasks": [],
+            "areas_of_expertise": [],
+            "description": "5 years in software development",
+            "role": "Senior Developer",
+        },
+        {
+            "type": "project",
+            "title": "CVision",
+            "company": "",
+            "start_date": "",
+            "end_date": "",
+            "tasks": [],
+            "areas_of_expertise": [],
+            "description": "",
+            "role": "",
+        },
+        {
+            "type": "project",
+            "title": "DataPlatform",
+            "company": "",
+            "start_date": "",
+            "end_date": "",
+            "tasks": [],
+            "areas_of_expertise": [],
+            "description": "",
+            "role": "",
+        },
+    ],
+    "education": [],
+    "certifications": [],
+    "languages": [],
+    "industry_knowledge": {
+        "industries": [],
+        "companies": [],
+    },
 }
 
 MINIMAL_COSMOS_DOC: dict = {
@@ -47,7 +91,6 @@ def test_build_searchable_text_with_all_fields():
     assert "Docker" in text
     assert "5 years in software development" in text
     assert "CVision" in text
-    assert "IT" in text
     assert "Berlin" in text
 
 
@@ -67,12 +110,14 @@ def test_build_search_document_maps_all_fields():
     assert doc["employeeName"] == "Doe, John"
     assert doc["employeeAlias"] == "JDOE"
     assert doc["title"] == "Senior Developer"
-    assert doc["skills"] == ["Python", "JavaScript", "React"]
+    assert doc["skills"] == ["VS Code", "Docker", "Git", "Python", "JavaScript", "React"]
     assert doc["tools"] == ["VS Code", "Docker", "Git"]
-    assert doc["experience"] == "5 years in software development"
+    assert "Senior Developer" in doc["experience"]
+    assert "ACME" in doc["experience"]
+    assert "5 years in software development" in doc["experience"]
     assert doc["projects"] == "CVision, DataPlatform"
     assert doc["location"] == "Berlin"
-    assert doc["department"] == "IT"
+    assert doc["department"] == ""
     assert doc["contentVector"] == embedding
     assert isinstance(doc["content"], str)
     assert len(doc["content"]) > 0
@@ -99,14 +144,38 @@ def test_build_search_document_calculates_years_of_experience():
 
 
 def test_build_search_document_uses_new_job_title_fallback():
-    raw = {"id": "FB", "New Job Title": "Fallback Title"}
+    raw = {
+        "id": "FB",
+        "experience": [
+            {
+                "type": "job",
+                "title": "Fallback Title",
+                "company": "",
+                "start_date": "",
+                "end_date": "",
+                "tasks": [],
+                "areas_of_expertise": [],
+                "description": "",
+                "role": "",
+            }
+        ],
+    }
     doc = build_search_document(raw, [0.0] * 10)
 
     assert doc["title"] == "Fallback Title"
 
 
 def test_build_search_document_handles_csv_skills():
-    raw = {**MINIMAL_COSMOS_DOC, "Skills": "Python, JavaScript, React"}
+    raw = {
+        "id": "MINIMAL",
+        "skills": {
+            "technologies": ["Python", "JavaScript", "React"],
+            "tools": [],
+            "methods": [],
+            "standards": [],
+            "soft_skills": [],
+        },
+    }
     doc = build_search_document(raw, [0.0] * 10)
 
     assert doc["skills"] == ["Python", "JavaScript", "React"]

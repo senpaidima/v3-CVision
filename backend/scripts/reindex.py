@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 def _calculate_years(start_date: str | None) -> float:
     if not start_date:
         return 0.0
-    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d", "%d.%m.%Y"):
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d", "%d.%m.%Y", "%Y-%m", "%Y"):
         try:
             start = datetime.strptime(start_date, fmt)  # noqa: DTZ007
             years = (datetime.now() - start).days / 365.25  # noqa: DTZ005
@@ -47,81 +47,228 @@ def _calculate_years(start_date: str | None) -> float:
     return 0.0
 
 
+def _get_all_skills(doc: dict[str, Any]) -> list[str]:
+    """Extract all skills from nested skills object."""
+    skills_obj = doc.get("skills", {})
+    if not isinstance(skills_obj, dict):
+        return []
+    all_skills: list[str] = []
+    for key in ("tools", "technologies", "methods", "standards", "soft_skills"):
+        items = skills_obj.get(key, [])
+        if isinstance(items, list):
+            all_skills.extend(str(s) for s in items if s)
+    return all_skills
+
+
+def _get_tools(doc: dict[str, Any]) -> list[str]:
+    """Extract tools from nested skills object."""
+    skills_obj = doc.get("skills", {})
+    if not isinstance(skills_obj, dict):
+        return []
+    tools = skills_obj.get("tools", [])
+    return [str(t) for t in tools if t] if isinstance(tools, list) else []
+
+
+def _get_experience_text(doc: dict[str, Any]) -> str:
+    """Build experience summary from experience array."""
+    experiences = doc.get("experience", [])
+    if not isinstance(experiences, list):
+        return ""
+    parts: list[str] = []
+    for exp in experiences:
+        if not isinstance(exp, dict):
+            continue
+        title = exp.get("title", "")
+        company = exp.get("company", "")
+        role = exp.get("role", "")
+        desc = exp.get("description", "")
+        tasks = exp.get("tasks", [])
+        areas = exp.get("areas_of_expertise", [])
+        line_parts = [p for p in [title, company, role] if p]
+        if tasks and isinstance(tasks, list):
+            line_parts.append(f"Tasks: {', '.join(str(t) for t in tasks)}")
+        if areas and isinstance(areas, list):
+            line_parts.append(f"Expertise: {', '.join(str(a) for a in areas)}")
+        if desc:
+            line_parts.append(desc)
+        if line_parts:
+            parts.append(" | ".join(line_parts))
+    return "; ".join(parts)
+
+
+def _get_projects_text(doc: dict[str, Any]) -> str:
+    """Extract project titles from experience array."""
+    experiences = doc.get("experience", [])
+    if not isinstance(experiences, list):
+        return ""
+    projects = []
+    for exp in experiences:
+        if isinstance(exp, dict) and exp.get("type") == "project":
+            title = exp.get("title", "")
+            if title:
+                projects.append(title)
+    return ", ".join(projects)
+
+
+def _get_latest_title(doc: dict[str, Any]) -> str:
+    """Get the latest job title from experience."""
+    experiences = doc.get("experience", [])
+    if not isinstance(experiences, list):
+        return ""
+    for exp in experiences:
+        if isinstance(exp, dict) and exp.get("type") == "job":
+            title = exp.get("title", "")
+            if title:
+                return title
+    # Fallback to any experience title
+    for exp in experiences:
+        if isinstance(exp, dict):
+            title = exp.get("title", "")
+            if title:
+                return title
+    return ""
+
+
+def _get_earliest_start(doc: dict[str, Any]) -> str | None:
+    """Find the earliest start date from experience."""
+    experiences = doc.get("experience", [])
+    if not isinstance(experiences, list):
+        return None
+    dates: list[str] = []
+    for exp in experiences:
+        if isinstance(exp, dict):
+            sd = exp.get("start_date", "")
+            if sd:
+                dates.append(sd)
+    return min(dates) if dates else None
+
+
 def build_searchable_text(doc: dict[str, Any]) -> str:
     """Build searchable text from a Cosmos DB employee document.
 
-    Cosmos DB fields use space-separated names ("First Name", "Job Title").
+    Cosmos DB documents have nested structure with metadata, skills, experience, etc.
     This function concatenates key fields into a single string for embedding.
     """
     parts: list[str] = []
 
-    name = doc.get("Employee", "")
+    # Name from metadata
+    metadata = doc.get("metadata", {})
+    name = ""
+    if isinstance(metadata, dict):
+        name = metadata.get("title", "")
+        if not name:
+            first = metadata.get("first_name", "")
+            last = metadata.get("last_name", "")
+            name = f"{first} {last}".strip()
     if name:
         parts.append(f"Name: {name}")
 
-    title = doc.get("Job Title") or doc.get("New Job Title", "")
+    # Latest job title
+    title = _get_latest_title(doc)
     if title:
         parts.append(f"Title: {title}")
 
-    skills = doc.get("Skills", [])
-    if isinstance(skills, list) and skills:
-        parts.append(f"Skills: {', '.join(str(s) for s in skills)}")
-    elif isinstance(skills, str) and skills:
-        parts.append(f"Skills: {skills}")
+    # All skills (tools + technologies + methods + standards)
+    all_skills = _get_all_skills(doc)
+    if all_skills:
+        parts.append(f"Skills: {', '.join(all_skills)}")
 
-    tools = doc.get("Tools", [])
-    if isinstance(tools, list) and tools:
-        parts.append(f"Tools: {', '.join(str(t) for t in tools)}")
-    elif isinstance(tools, str) and tools:
-        parts.append(f"Tools: {tools}")
+    # Tools specifically
+    tools = _get_tools(doc)
+    if tools:
+        parts.append(f"Tools: {', '.join(tools)}")
 
-    experience = doc.get("Experience", "")
-    if experience:
-        parts.append(f"Experience: {experience}")
+    # Experience
+    exp_text = _get_experience_text(doc)
+    if exp_text:
+        parts.append(f"Experience: {exp_text}")
 
-    projects = doc.get("Projects", "")
+    # Projects
+    projects = _get_projects_text(doc)
     if projects:
         parts.append(f"Projects: {projects}")
 
-    department = doc.get("Department", "")
-    if department:
-        parts.append(f"Department: {department}")
-
-    location = doc.get("Location", "")
+    # Location
+    personal = doc.get("personal_info", {})
+    location = personal.get("location", "") if isinstance(personal, dict) else ""
     if location:
         parts.append(f"Location: {location}")
+
+    # Education
+    education = doc.get("education", [])
+    if isinstance(education, list) and education:
+        edu_parts = []
+        for edu in education:
+            if isinstance(edu, dict):
+                degree = edu.get("degree", "")
+                field = edu.get("field_of_study", "")
+                inst = edu.get("institution", "")
+                edu_parts.append(" - ".join(p for p in [degree, field, inst] if p))
+        if edu_parts:
+            parts.append(f"Education: {'; '.join(edu_parts)}")
+
+    # Certifications
+    certs = doc.get("certifications", [])
+    if isinstance(certs, list) and certs:
+        cert_titles = [c.get("title", "") for c in certs if isinstance(c, dict) and c.get("title")]
+        if cert_titles:
+            parts.append(f"Certifications: {', '.join(cert_titles)}")
+
+    # Languages
+    langs = doc.get("languages", [])
+    if isinstance(langs, list) and langs:
+        lang_parts = [
+            f"{l.get('language', '')} ({l.get('proficiency', '')})"
+            for l in langs
+            if isinstance(l, dict) and l.get("language")
+        ]
+        if lang_parts:
+            parts.append(f"Languages: {', '.join(lang_parts)}")
+
+    # Industry knowledge
+    industry = doc.get("industry_knowledge", {})
+    if isinstance(industry, dict):
+        industries = industry.get("industries", [])
+        companies = industry.get("companies", [])
+        if isinstance(industries, list) and industries:
+            parts.append(f"Industries: {', '.join(str(i) for i in industries)}")
+        if isinstance(companies, list) and companies:
+            parts.append(f"Companies: {', '.join(str(c) for c in companies)}")
 
     return "\n".join(parts)
 
 
 def build_search_document(doc: dict[str, Any], embedding: list[float]) -> dict[str, Any]:
-    """Map Cosmos DB employee doc (space-separated keys) to camelCase search index fields."""
-    alias = doc.get("Alias") or doc.get("id") or "unknown"
-    name = doc.get("Employee", "")
-    title = doc.get("Job Title") or doc.get("New Job Title", "")
+    """Map Cosmos DB employee doc to search index fields."""
+    doc_id = doc.get("id") or "unknown"
+    metadata = doc.get("metadata", {})
+    name = ""
+    if isinstance(metadata, dict):
+        name = metadata.get("title", "")
+        if not name:
+            first = metadata.get("first_name", "")
+            last = metadata.get("last_name", "")
+            name = f"{first} {last}".strip()
 
-    skills = doc.get("Skills", [])
-    if isinstance(skills, str):
-        skills = [s.strip() for s in skills.split(",") if s.strip()]
-
-    tools = doc.get("Tools", [])
-    if isinstance(tools, str):
-        tools = [t.strip() for t in tools.split(",") if t.strip()]
+    all_skills = _get_all_skills(doc)
+    tools = _get_tools(doc)
+    personal = doc.get("personal_info", {})
+    location = personal.get("location", "") if isinstance(personal, dict) else ""
 
     return {
         "@search.action": "mergeOrUpload",
-        "id": alias,
+        "id": str(doc_id),
         "employeeName": name,
-        "employeeAlias": alias,
+        "employeeAlias": str(doc_id),
         "content": build_searchable_text(doc),
-        "skills": skills if isinstance(skills, list) else [],
-        "tools": tools if isinstance(tools, list) else [],
-        "experience": doc.get("Experience", ""),
-        "projects": doc.get("Projects", ""),
-        "title": title,
-        "location": doc.get("Location", ""),
-        "department": doc.get("Department", ""),
-        "yearsOfExperience": _calculate_years(doc.get("Start")),
+        "skills": all_skills,
+        "tools": tools,
+        "experience": _get_experience_text(doc),
+        "projects": _get_projects_text(doc),
+        "title": _get_latest_title(doc),
+        "location": location,
+        "department": "",
+        "yearsOfExperience": _calculate_years(_get_earliest_start(doc)),
         "contentVector": embedding,
     }
 

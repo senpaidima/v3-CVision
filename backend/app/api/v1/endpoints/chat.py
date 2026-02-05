@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 @router.post("/stream", response_class=StreamingResponse)
 async def chat_stream(
     request: ChatRequest,
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_current_user),  # noqa: B008
 ):
     logger.info("Chat stream request from user=%s query=%s", user.name, request.query[:50])
 
