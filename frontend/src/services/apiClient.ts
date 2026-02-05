@@ -1,10 +1,12 @@
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 interface ApiClientOptions extends RequestInit {
   timeout?: number;
 }
 
-// Placeholder for auth token injection
 let getAuthToken: (() => Promise<string | null>) | null = null;
 
 export const setAuthTokenProvider = (
@@ -12,6 +14,19 @@ export const setAuthTokenProvider = (
 ) => {
   getAuthToken = provider;
 };
+
+export function AuthTokenConnector(): null {
+  const { getAccessToken } = useAuth();
+
+  useEffect(() => {
+    setAuthTokenProvider(getAccessToken);
+    return () => {
+      getAuthToken = null;
+    };
+  }, [getAccessToken]);
+
+  return null;
+}
 
 const getHeaders = async (options?: ApiClientOptions): Promise<HeadersInit> => {
   const headers: HeadersInit = {
@@ -22,7 +37,7 @@ const getHeaders = async (options?: ApiClientOptions): Promise<HeadersInit> => {
   if (getAuthToken) {
     const token = await getAuthToken();
     if (token) {
-      (headers as any)["Authorization"] = `Bearer ${token}`;
+      (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
   }
 
@@ -41,14 +56,13 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
       } else {
         errorMessage = (await response.text()) || errorMessage;
       }
-    } catch (e) {
+    } catch {
       // ignore parsing errors
     }
 
     throw new Error(errorMessage);
   }
 
-  // Handle empty responses
   if (response.status === 204) {
     return {} as T;
   }
@@ -112,7 +126,6 @@ const apiClient = {
     return handleResponse<T>(response);
   },
 
-  // Basic streaming implementation
   async stream(
     endpoint: string,
     data: unknown,
@@ -140,7 +153,6 @@ const apiClient = {
       const { done, value } = await reader.read();
       if (done) break;
       const text = decoder.decode(value, { stream: true });
-      // Simple parsing assuming text chunks - real SSE might need more robust parsing
       onToken(text);
     }
   },
