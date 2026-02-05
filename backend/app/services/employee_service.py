@@ -72,7 +72,8 @@ class EmployeeService:
             logger.warning("Cosmos DB credentials missing — service not initialized")
             return
 
-        self.client = CosmosClient(endpoint, key)
+        self.client = CosmosClient(endpoint, credential=key)
+        await self.client.__aenter__()
         db = self.client.get_database_client(database_name)
         self.container = db.get_container_client(container_name)
         self.initialized = True
@@ -96,7 +97,6 @@ class EmployeeService:
         async for item in self.container.query_items(
             query=query,
             parameters=params,
-            enable_cross_partition_query=True,
         ):
             items.append(item)
 
@@ -119,7 +119,6 @@ class EmployeeService:
         async for item in self.container.query_items(
             query=query,
             parameters=params,
-            enable_cross_partition_query=True,
         ):
             detail = self._transform_employee(item)
             results.append(
@@ -143,7 +142,6 @@ class EmployeeService:
             query = "SELECT VALUE COUNT(1) FROM c"
             async for _ in self.container.query_items(
                 query=query,
-                enable_cross_partition_query=True,
             ):
                 return True
             return True

@@ -1,4 +1,8 @@
+import sys
+
 from pydantic_settings import BaseSettings
+
+_ENV_FILE = None if "pytest" in sys.modules else ".env"
 
 
 class Settings(BaseSettings):
@@ -26,7 +30,7 @@ class Settings(BaseSettings):
     AZURE_AD_CLIENT_ID: str = ""
 
     model_config = {
-        "env_file": ".env",
+        "env_file": _ENV_FILE,
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
     }
