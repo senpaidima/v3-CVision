@@ -3,7 +3,11 @@
   "nav": { "search": "Search", "lastenheft": "Requirements Analyzer" },
   "search": {
     "title": "AI Employee Search",
-    "placeholder": "Describe the employee you're looking for..."
+    "placeholder": "Describe the employee you're looking for...",
+    "submit": "Search",
+    "loading": "Searching...",
+    "error": "An error occurred",
+    "noResults": "No employees found"
   },
   "lastenheft": {
     "title": "Requirements Analyzer",

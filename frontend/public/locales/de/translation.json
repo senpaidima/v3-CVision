@@ -3,7 +3,11 @@
   "nav": { "search": "Suche", "lastenheft": "Lastenheft Analyzer" },
   "search": {
     "title": "AI-Mitarbeitersuche",
-    "placeholder": "Beschreiben Sie den gesuchten Mitarbeiter..."
+    "placeholder": "Beschreiben Sie den gesuchten Mitarbeiter...",
+    "submit": "Suchen",
+    "loading": "Suche läuft...",
+    "error": "Ein Fehler ist aufgetreten",
+    "noResults": "Keine Mitarbeiter gefunden"
   },
   "lastenheft": {
     "title": "Lastenheft Analyzer",
