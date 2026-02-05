@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     COSMOS_DB_ENDPOINT: str = ""
     COSMOS_DB_KEY: str = ""
     COSMOS_DB_DATABASE: str = "emposo-db"
+    COSMOS_DB_EMPLOYEES_CONTAINER: str = "employees"
 
     AZURE_SEARCH_ENDPOINT: str = ""
     AZURE_SEARCH_KEY: str = ""

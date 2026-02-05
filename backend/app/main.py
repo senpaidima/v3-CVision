@@ -1,14 +1,34 @@
-from fastapi import Depends, FastAPI
+from __future__ import annotations
+
+import logging
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.dependencies import get_current_user
-from app.models.auth import UserInfo
+from app.services.employee_service import employee_service
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+    try:
+        await employee_service.initialize(settings)
+    except Exception:
+        logger.exception("Failed to initialize EmployeeService — continuing without DB")
+    yield
+    await employee_service.close()
+
 
 app = FastAPI(
     title="CVision v3 API",
     description="AI Employee Search + Lastenheft Analyzer",
     version=settings.APP_VERSION,
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -23,17 +43,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(api_router)
+
 
 @app.get("/")
 async def root():
     return {"message": "CVision v3 API"}
-
-
-@app.get("/api/v1/health")
-async def health():
-    return {"status": "ok", "version": settings.APP_VERSION}
-
-
-@app.get("/api/v1/health/protected")
-async def health_protected(user: UserInfo = Depends(get_current_user)):
-    return {"status": "ok", "user": user.model_dump()}
