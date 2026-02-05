@@ -7,11 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from app.core.dependencies import get_current_user
 from app.models.auth import UserInfo
 from app.models.lastenheft import (
+    CandidateMatchRequest,
+    CandidateMatchResponse,
     LastenheftAnalysisRequest,
     LastenheftAnalysisResponse,
     LastenheftTextRequest,
     LastenheftUploadResponse,
 )
+from app.services.candidate_matcher import CandidateMatcherError, candidate_matcher
 from app.services.document_extractor import (
     SUPPORTED_CONTENT_TYPES,
     DocumentExtractionError,
@@ -104,6 +107,29 @@ async def analyze_lastenheft(
         result.quality_assessment.overall,
         len(result.open_questions),
         len(result.extracted_skills),
+        user.name,
+    )
+    return result
+
+
+@router.post("/match", response_model=CandidateMatchResponse)
+async def match_candidates(
+    request: CandidateMatchRequest,
+    user: UserInfo = Depends(get_current_user),
+):
+    try:
+        result = await candidate_matcher.match(request.extracted_skills, request.text)
+    except CandidateMatcherError as e:
+        logger.error("Candidate matching failed for user=%s: %s", user.name, e)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Candidate matching failed: {e}",
+        ) from e
+
+    logger.info(
+        "Candidate matching: %d matches from %d searched, user=%s",
+        len(result.matches),
+        result.total_candidates_searched,
         user.name,
     )
     return result

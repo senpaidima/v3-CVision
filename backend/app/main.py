@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.services.candidate_matcher import candidate_matcher
 from app.services.chat_service import chat_service
 from app.services.embedding_service import embedding_service
 from app.services.employee_service import employee_service
@@ -40,12 +41,17 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         await lastenheft_analyzer.initialize(settings)
     except Exception:
         logger.exception("Failed to initialize LastenheftAnalyzer — continuing without analyzer")
+    try:
+        await candidate_matcher.initialize(settings)
+    except Exception:
+        logger.exception("Failed to initialize CandidateMatcher — continuing without matcher")
     yield
     await employee_service.close()
     await embedding_service.close()
     await search_service.close()
     await chat_service.close()
     await lastenheft_analyzer.close()
+    await candidate_matcher.close()
 
 
 app = FastAPI(

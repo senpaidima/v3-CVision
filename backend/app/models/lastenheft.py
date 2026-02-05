@@ -62,3 +62,40 @@ class LastenheftAnalysisResponse(BaseModel):
     quality_assessment: QualityScore
     open_questions: list[OpenQuestion]
     extracted_skills: list[ExtractedSkill]
+
+
+class CandidateMatchRequest(BaseModel):
+    """Request body for matching employees to Lastenheft skills."""
+
+    extracted_skills: list[ExtractedSkill]
+    text: str = Field(..., min_length=10, max_length=500_000)
+
+
+class ScoreBreakdown(BaseModel):
+    """Weighted score breakdown for a candidate match."""
+
+    skill_match: float = Field(..., ge=0.0, le=1.0)
+    experience: float = Field(..., ge=0.0, le=1.0)
+    semantic_similarity: float = Field(..., ge=0.0, le=1.0)
+    availability: float = Field(..., ge=0.0, le=1.0)
+
+
+class CandidateMatch(BaseModel):
+    """A single candidate match result with scoring details."""
+
+    employee_name: str
+    employee_alias: str
+    title: str
+    location: str
+    skills: list[str]
+    total_score: float = Field(..., ge=0.0, le=1.0)
+    breakdown: ScoreBreakdown
+    explanation: str
+
+
+class CandidateMatchResponse(BaseModel):
+    """Response containing ranked candidate matches."""
+
+    matches: list[CandidateMatch]
+    total_candidates_searched: int
+    query_skills: list[str]
