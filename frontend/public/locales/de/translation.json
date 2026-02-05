@@ -11,7 +11,44 @@
   },
   "lastenheft": {
     "title": "Lastenheft Analyzer",
-    "upload": "Dokument hochladen"
+    "upload": "Dokument hochladen",
+    "uploadHint": "PDF oder DOCX Datei hierher ziehen oder klicken",
+    "pasteTab": "Text einfügen",
+    "fileTab": "Datei hochladen",
+    "textPlaceholder": "Lastenheft-Text hier einfügen...",
+    "analyze": "Analysieren",
+    "analyzing": "Analyse läuft...",
+    "quality": "Qualitätsbewertung",
+    "questions": "Offene Fragen",
+    "skills": "Extrahierte Skills",
+    "findCandidates": "Passende Kandidaten finden",
+    "matching": "Suche Kandidaten...",
+    "candidates": "Passende Kandidaten",
+    "candidatesFound": "{{count}} Kandidaten gefunden",
+    "score": "Gesamtbewertung",
+    "skillMatch": "Skill-Match",
+    "experience": "Erfahrung",
+    "semantic": "Semantische Ähnlichkeit",
+    "availability": "Verfügbarkeit",
+    "mandatory": "Pflicht",
+    "optional": "Optional",
+    "newAnalysis": "Neue Analyse",
+    "error": "Fehler bei der Analyse",
+    "noFile": "Bitte wählen Sie eine Datei aus",
+    "noText": "Bitte geben Sie Text ein",
+    "unsupportedFormat": "Nur PDF und DOCX Dateien werden unterstützt",
+    "categories": {
+      "technical": "Technisch",
+      "team": "Team",
+      "timeline": "Zeitplan",
+      "budget": "Budget",
+      "domain": "Fachlich"
+    },
+    "priorities": {
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    }
   },
   "employee": {
     "title": "Mitarbeiter-Details",

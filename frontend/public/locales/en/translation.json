@@ -3,7 +3,7 @@
   "nav": { "search": "Search", "lastenheft": "Requirements Analyzer" },
   "search": {
     "title": "AI Employee Search",
-    "placeholder": "Describe the employee you're looking for...",
+    "placeholder": "Describe the employee you are looking for...",
     "submit": "Search",
     "loading": "Searching...",
     "error": "An error occurred",
@@ -11,7 +11,44 @@
   },
   "lastenheft": {
     "title": "Requirements Analyzer",
-    "upload": "Upload document"
+    "upload": "Upload document",
+    "uploadHint": "Drag & drop PDF or DOCX file here, or click to browse",
+    "pasteTab": "Paste text",
+    "fileTab": "Upload file",
+    "textPlaceholder": "Paste requirements text here...",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "quality": "Quality Assessment",
+    "questions": "Open Questions",
+    "skills": "Extracted Skills",
+    "findCandidates": "Find Matching Candidates",
+    "matching": "Searching candidates...",
+    "candidates": "Matching Candidates",
+    "candidatesFound": "{{count}} candidates found",
+    "score": "Overall Score",
+    "skillMatch": "Skill Match",
+    "experience": "Experience",
+    "semantic": "Semantic Similarity",
+    "availability": "Availability",
+    "mandatory": "Required",
+    "optional": "Optional",
+    "newAnalysis": "New Analysis",
+    "error": "Analysis failed",
+    "noFile": "Please select a file",
+    "noText": "Please enter text",
+    "unsupportedFormat": "Only PDF and DOCX files are supported",
+    "categories": {
+      "technical": "Technical",
+      "team": "Team",
+      "timeline": "Timeline",
+      "budget": "Budget",
+      "domain": "Domain"
+    },
+    "priorities": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
   },
   "employee": {
     "title": "Employee Details",
@@ -31,9 +68,9 @@
     "jobCode": "Job Code"
   },
   "auth": {
-    "login": "Sign in",
-    "logout": "Sign out",
-    "loginWith": "Sign in with Azure AD"
+    "login": "Login",
+    "logout": "Logout",
+    "loginWith": "Login with Azure AD"
   },
   "common": {
     "loading": "Loading...",
