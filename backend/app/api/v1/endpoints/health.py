@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends
 from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.models.auth import UserInfo
+from app.services.embedding_service import embedding_service
 from app.services.employee_service import employee_service
+from app.services.search_service import search_service
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -23,8 +25,23 @@ async def health_check():
     except Exception:
         services["cosmos_db"] = "error"
 
-    services["azure_search"] = "not_configured"
-    services["azure_openai"] = "not_configured"
+    try:
+        if search_service.initialized:
+            ok = await search_service.check_connection()
+            services["azure_search"] = "ok" if ok else "error"
+        else:
+            services["azure_search"] = "not_configured"
+    except Exception:
+        services["azure_search"] = "error"
+
+    try:
+        if embedding_service.initialized:
+            ok = await embedding_service.check_connection()
+            services["azure_openai"] = "ok" if ok else "error"
+        else:
+            services["azure_openai"] = "not_configured"
+    except Exception:
+        services["azure_openai"] = "error"
 
     all_ok = all(v in ("ok", "not_configured") for v in services.values())
 
