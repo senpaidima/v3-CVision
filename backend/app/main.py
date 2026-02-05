@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.dependencies import get_current_user
+from app.models.auth import UserInfo
 
 app = FastAPI(
     title="CVision v3 API",
@@ -30,3 +32,8 @@ async def root():
 @app.get("/api/v1/health")
 async def health():
     return {"status": "ok", "version": settings.APP_VERSION}
+
+
+@app.get("/api/v1/health/protected")
+async def health_protected(user: UserInfo = Depends(get_current_user)):
+    return {"status": "ok", "user": user.model_dump()}
