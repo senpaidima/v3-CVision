@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.services.chat_service import chat_service
 from app.services.embedding_service import embedding_service
 from app.services.employee_service import employee_service
+from app.services.lastenheft_analyzer import lastenheft_analyzer
 from app.services.search_service import search_service
 
 logger = logging.getLogger(__name__)
@@ -35,11 +36,16 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         await chat_service.initialize(settings)
     except Exception:
         logger.exception("Failed to initialize ChatService — continuing without chat")
+    try:
+        await lastenheft_analyzer.initialize(settings)
+    except Exception:
+        logger.exception("Failed to initialize LastenheftAnalyzer — continuing without analyzer")
     yield
     await employee_service.close()
     await embedding_service.close()
     await search_service.close()
     await chat_service.close()
+    await lastenheft_analyzer.close()
 
 
 app = FastAPI(

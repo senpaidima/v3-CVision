@@ -6,13 +6,19 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from app.core.dependencies import get_current_user
 from app.models.auth import UserInfo
-from app.models.lastenheft import LastenheftTextRequest, LastenheftUploadResponse
+from app.models.lastenheft import (
+    LastenheftAnalysisRequest,
+    LastenheftAnalysisResponse,
+    LastenheftTextRequest,
+    LastenheftUploadResponse,
+)
 from app.services.document_extractor import (
     SUPPORTED_CONTENT_TYPES,
     DocumentExtractionError,
     MAX_FILE_SIZE,
     document_extractor,
 )
+from app.services.lastenheft_analyzer import LastenheftAnalyzerError, lastenheft_analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -76,3 +82,28 @@ async def paste_lastenheft_text(
         char_count=len(cleaned),
         format="text",
     )
+
+
+@router.post("/analyze", response_model=LastenheftAnalysisResponse)
+async def analyze_lastenheft(
+    request: LastenheftAnalysisRequest,
+    user: UserInfo = Depends(get_current_user),
+):
+    try:
+        result = await lastenheft_analyzer.analyze(request.text)
+    except LastenheftAnalyzerError as e:
+        logger.error("Lastenheft analysis failed for user=%s: %s", user.name, e)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI analysis failed: {e}",
+        ) from e
+
+    logger.info(
+        "Lastenheft analyzed: %d chars, quality=%d, questions=%d, skills=%d, user=%s",
+        len(request.text),
+        result.quality_assessment.overall,
+        len(result.open_questions),
+        len(result.extracted_skills),
+        user.name,
+    )
+    return result
