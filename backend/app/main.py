@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.services.chat_service import chat_service
 from app.services.embedding_service import embedding_service
 from app.services.employee_service import employee_service
 from app.services.search_service import search_service
@@ -30,10 +31,15 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         await search_service.initialize(settings)
     except Exception:
         logger.exception("Failed to initialize SearchService — continuing without search")
+    try:
+        await chat_service.initialize(settings)
+    except Exception:
+        logger.exception("Failed to initialize ChatService — continuing without chat")
     yield
     await employee_service.close()
     await embedding_service.close()
     await search_service.close()
+    await chat_service.close()
 
 
 app = FastAPI(
