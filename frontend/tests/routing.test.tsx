@@ -44,3 +44,8 @@ test("authenticated user at /login redirects to search", () => {
   renderWithAuth(["/login"]);
   expect(screen.getByTestId("search-page")).toBeDefined();
 });
+
+test("unknown route shows 404 page", () => {
+  renderWithAuth(["/some/nonexistent/path"]);
+  expect(screen.getByTestId("not-found-page")).toBeDefined();
+});

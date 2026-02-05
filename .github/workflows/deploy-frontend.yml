@@ -1,0 +1,158 @@
+name: Deploy Frontend to Azure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: emposo-ai-cv-app
+  NODE_VERSION: "20"
+
+concurrency:
+  group: frontend-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Generate build version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME}-${GITHUB_SHA::8}-$(date +%Y%m%d%H%M%S)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: frontend
+        run: npm test
+        env:
+          CI: true
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_BUILD_VERSION: ${{ steps.version.outputs.version }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      - name: Prepare deployment package
+        working-directory: frontend
+        run: |
+          mkdir -p deploy-package
+          cp -r dist deploy-package/
+          cp server.js deploy-package/
+          cp package.json deploy-package/
+          cp package-lock.json deploy-package/
+
+          cd deploy-package
+          npm install --omit=dev express compression
+          cd ..
+
+          echo "Deployment package contents:"
+          ls -la deploy-package/
+          echo "Package size: $(du -sh deploy-package | cut -f1)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: frontend/deploy-package
+          retention-days: 3
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    environment:
+      name: Production
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+          path: ./deployment
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Azure Web App
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-settings-json: |
+            [
+              { "name": "NODE_ENV", "value": "production" },
+              { "name": "BUILD_VERSION", "value": "${{ needs.build.outputs.version }}" },
+              { "name": "WEBSITE_NODE_DEFAULT_VERSION", "value": "~20" },
+              { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false" }
+            ]
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: Production
+          package: ./deployment
+          clean: true
+          restart: true
+
+      - name: Health check
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+
+          HEALTH_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health"
+          for i in $(seq 1 8); do
+            echo "Health check attempt $i/8..."
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$HEALTH_URL" 2>/dev/null || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Status: $status, retrying in 15s..."
+            sleep 15
+          done
+          echo "Health check failed after all attempts"
+          exit 1

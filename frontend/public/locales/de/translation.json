@@ -72,6 +72,16 @@
     "logout": "Abmelden",
     "loginWith": "Mit Azure AD anmelden"
   },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten",
+    "goHome": "Zur Startseite"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Die angeforderte Seite existiert nicht",
+    "goHome": "Zur Startseite"
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",

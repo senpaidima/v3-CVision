@@ -72,6 +72,16 @@
     "logout": "Logout",
     "loginWith": "Login with Azure AD"
   },
+  "error": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred",
+    "goHome": "Go to Home"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The requested page does not exist",
+    "goHome": "Go to Home"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
