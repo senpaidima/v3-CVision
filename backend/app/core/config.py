@@ -12,10 +12,15 @@ class Settings(BaseSettings):
 
     AZURE_SEARCH_ENDPOINT: str = ""
     AZURE_SEARCH_KEY: str = ""
-    AZURE_SEARCH_INDEX: str = "cv-index"
+    AZURE_SEARCH_INDEX: str = "cvision-v3-index"
+    AZURE_SEARCH_API_VERSION: str = "2024-07-01"
 
+    OPENAI_ENDPOINT: str = ""
     OPENAI_API_KEY: str = ""
-    OPENAI_API_VERSION: str = "2024-02-15-preview"
+    OPENAI_API_VERSION: str = "2024-10-21"
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-large"
+    OPENAI_EMBEDDING_DIMENSIONS: int = 3072
+    OPENAI_CHAT_MODEL: str = "gpt-4o"
 
     AZURE_AD_TENANT_ID: str = ""
     AZURE_AD_CLIENT_ID: str = ""
