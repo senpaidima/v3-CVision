@@ -35,7 +35,7 @@ vi.mock("../src/services/apiClient", () => ({
 }));
 
 // Mock fetch for file upload
-global.fetch = vi.fn();
+(globalThis as any).fetch = vi.fn();
 
 describe("LastenheftPage", () => {
   beforeEach(() => {
