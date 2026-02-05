@@ -72,11 +72,21 @@ jobs:
           mkdir -p deploy-package
           cp -r dist deploy-package/
           cp server.js deploy-package/
-          cp package.json deploy-package/
-          cp package-lock.json deploy-package/
+
+          cat > deploy-package/package.json << 'PKGJSON'
+          {
+            "name": "cvision-v3-frontend",
+            "private": true,
+            "type": "module",
+            "dependencies": {
+              "express": "^4.21.0",
+              "compression": "^1.7.5"
+            }
+          }
+          PKGJSON
 
           cd deploy-package
-          npm install --omit=dev express compression
+          npm install --omit=dev
           cd ..
 
           echo "Deployment package contents:"
