@@ -1,8 +1,18 @@
 import { render, screen } from "@testing-library/react";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../src/context/AuthContext";
 import { AppRoutes } from "../src/App";
+
+// Mock useApi to avoid network calls and return dummy data
+vi.mock("../src/hooks/useApi", () => ({
+  default: () => ({
+    data: { name: "john-doe", title: "Developer" },
+    loading: false,
+    error: null,
+    execute: vi.fn(),
+  }),
+}));
 
 function renderWithAuth(initialEntries: string[]) {
   return render(

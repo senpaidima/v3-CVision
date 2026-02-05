@@ -13,7 +13,23 @@
     "title": "Requirements Analyzer",
     "upload": "Upload document"
   },
-  "employee": { "title": "Employee Details" },
+  "employee": {
+    "title": "Employee Details",
+    "department": "Department",
+    "location": "Location",
+    "email": "Email",
+    "phone": "Phone",
+    "office": "Office",
+    "experience": "Experience",
+    "years": "years",
+    "manager": "Manager",
+    "back": "Back",
+    "notFound": "Employee not found",
+    "loading": "Loading...",
+    "unit": "Unit",
+    "projectRole": "Project Role",
+    "jobCode": "Job Code"
+  },
   "auth": {
     "login": "Sign in",
     "logout": "Sign out",

@@ -13,7 +13,23 @@
     "title": "Lastenheft Analyzer",
     "upload": "Dokument hochladen"
   },
-  "employee": { "title": "Mitarbeiter-Details" },
+  "employee": {
+    "title": "Mitarbeiter-Details",
+    "department": "Abteilung",
+    "location": "Standort",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "office": "Büro",
+    "experience": "Erfahrung",
+    "years": "Jahre",
+    "manager": "Vorgesetzter",
+    "back": "Zurück",
+    "notFound": "Mitarbeiter nicht gefunden",
+    "loading": "Laden...",
+    "unit": "Bereich",
+    "projectRole": "Projektrolle",
+    "jobCode": "Job Code"
+  },
   "auth": {
     "login": "Anmelden",
     "logout": "Abmelden",
