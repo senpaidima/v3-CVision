@@ -1,5 +1,24 @@
 {
-  "app": {
-    "title": "CVision"
+  "app": { "title": "CVision", "subtitle": "AI Employee Search" },
+  "nav": { "search": "Search", "lastenheft": "Requirements Analyzer" },
+  "search": {
+    "title": "AI Employee Search",
+    "placeholder": "Describe the employee you're looking for..."
+  },
+  "lastenheft": {
+    "title": "Requirements Analyzer",
+    "upload": "Upload document"
+  },
+  "employee": { "title": "Employee Details" },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "loginWith": "Sign in with Azure AD"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "back": "Back",
+    "language": "Language"
   }
 }

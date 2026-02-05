@@ -1,5 +1,24 @@
 {
-  "app": {
-    "title": "CVision"
+  "app": { "title": "CVision", "subtitle": "AI-Mitarbeitersuche" },
+  "nav": { "search": "Suche", "lastenheft": "Lastenheft Analyzer" },
+  "search": {
+    "title": "AI-Mitarbeitersuche",
+    "placeholder": "Beschreiben Sie den gesuchten Mitarbeiter..."
+  },
+  "lastenheft": {
+    "title": "Lastenheft Analyzer",
+    "upload": "Dokument hochladen"
+  },
+  "employee": { "title": "Mitarbeiter-Details" },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "loginWith": "Mit Azure AD anmelden"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "back": "Zurück",
+    "language": "Sprache"
   }
 }
